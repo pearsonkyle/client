@@ -11,7 +11,8 @@
   },
   "include": [
     "tools",
-    "src/net"
+    "src/net",
+    "types"
   ],
   "exclude": [
     "**/*.test.ts",

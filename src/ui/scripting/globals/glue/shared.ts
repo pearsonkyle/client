@@ -160,29 +160,11 @@ export const AcceptContest = () => {
   return 0;
 };
 
-export const DefaultServerLogin = () => {
-  return 0;
-};
 
-export const StatusDialogClick = () => {
-  return 0;
-};
 
-export const GetServerName = () => {
-  return 0;
-};
 
-export const DisconnectFromServer = () => {
-  return 0;
-};
 
-export const IsConnectedToServer = () => {
-  return 0;
-};
 
-export const EnterWorld = () => {
-  return 0;
-};
 
 export const Screenshot = () => {
   return 0;
@@ -354,9 +336,6 @@ export const RequestRealmSplitInfo = () => {
   return 0;
 };
 
-export const CancelLogin = () => {
-  return 0;
-};
 
 export const GetCVar = () => {
   return 0;

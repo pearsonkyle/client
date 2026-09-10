@@ -21,7 +21,9 @@
     "test:watch": "jest --watch",
     "typecheck": "tsc && tsc -p tsconfig.node.json",
     "headless": "tsx tools/headless/index.ts",
-    "bridge": "tsx tools/bridge/index.ts"
+    "bridge": "tsx tools/bridge/index.ts",
+    "asset-server": "tsx tools/asset-server/index.ts",
+    "verify:browser": "node tools/verify/browser.mjs"
   },
   "keywords": [
     "world of warcraft",
@@ -30,6 +32,7 @@
     "wow"
   ],
   "dependencies": {
+    "@wowserhq/format": "0.28.0",
     "@wowserhq/math": "0.2.2",
     "fengari": "0.1.4"
   },
@@ -42,11 +45,13 @@
     "@types/node": "22.20.2",
     "@types/ws": "8.18.1",
     "@typescript-eslint/eslint-plugin": "8.46.0",
+    "@wowserhq/stormjs": "0.4.1",
     "eslint": "8.57.0",
     "eslint-plugin-import": "2.29.1",
     "husky": "^4.3.6",
     "jest": "29.7.0",
     "lint-staged": "15.5.2",
+    "playwright": "1.63.0",
     "tsx": "4.23.13",
     "typescript": "5.9.3",
     "vite": "7.1.9",
