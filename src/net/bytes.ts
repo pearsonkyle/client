@@ -134,6 +134,10 @@ export class ByteWriter {
     return this.length;
   }
 
+  // Reserves `size` bytes and returns the offset to write at. Reallocating replaces
+  // `this.view`, so callers must capture the returned offset into a local before
+  // touching `this.view` - `this.view.setUint32(this.grow(4), ...)` reads the stale view,
+  // because JavaScript evaluates the member expression before the argument.
   private grow(size: number): number {
     const at = this.length;
     const needed = at + size;
@@ -152,42 +156,50 @@ export class ByteWriter {
   }
 
   u8(value: number): this {
-    this.view.setUint8(this.grow(1), value);
+    const at = this.grow(1);
+    this.view.setUint8(at, value);
     return this;
   }
 
   u16(value: number): this {
-    this.view.setUint16(this.grow(2), value, true);
+    const at = this.grow(2);
+    this.view.setUint16(at, value, true);
     return this;
   }
 
   u16be(value: number): this {
-    this.view.setUint16(this.grow(2), value, false);
+    const at = this.grow(2);
+    this.view.setUint16(at, value, false);
     return this;
   }
 
   u32(value: number): this {
-    this.view.setUint32(this.grow(4), value, true);
+    const at = this.grow(4);
+    this.view.setUint32(at, value, true);
     return this;
   }
 
   u32be(value: number): this {
-    this.view.setUint32(this.grow(4), value, false);
+    const at = this.grow(4);
+    this.view.setUint32(at, value, false);
     return this;
   }
 
   u64(value: bigint): this {
-    this.view.setBigUint64(this.grow(8), value, true);
+    const at = this.grow(8);
+    this.view.setBigUint64(at, value, true);
     return this;
   }
 
   f32(value: number): this {
-    this.view.setFloat32(this.grow(4), value, true);
+    const at = this.grow(4);
+    this.view.setFloat32(at, value, true);
     return this;
   }
 
   bytes(value: Uint8Array): this {
-    this.buffer.set(value, this.grow(value.length));
+    const at = this.grow(value.length);
+    this.buffer.set(value, at);
     return this;
   }
 

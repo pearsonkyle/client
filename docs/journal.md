@@ -82,3 +82,56 @@ Also bumped CI from Node 18/20 to 22/24 to match `engines.node`.
 
 **Next:** M2 — world header crypt (RC4 drop-1024 keyed by HMAC-SHA1 of the session key),
 `CMSG_AUTH_SESSION`, char enum/create, enter world, chat.
+
+## 2026-09-10 — M2: world handshake, characters, world entry, chat
+
+`src/net/world/*` plus a `play` command on the headless CLI. Against the live server:
+
+```
+AUTH_OK expansion=2
+SMSG_CHAR_ENUM: 0 character(s)
+creating character Wowsertest (race 1, class 1)
+entering world as Wowsertest
+LOGIN_VERIFY_WORLD map=0 x=-8949.95 y=-132.49 z=83.53 o=0.00
+saying: hello from wowser
+  [SAY] Wowsertest: hello from wowser
+SMSG_LOGOUT_COMPLETE
+```
+
+That position is Northshire Abbey, the Human starting point — the right answer, not just
+a well-formed one. `account onlinelist` on the worldserver showed
+`[WOWSER1][Wowsertest][172.19.0.1][0][12][2][0]` — map 0, zone 12 (Elwynn Forest) — while
+the session was up. A 150-second run logged out cleanly with no disconnect, so the 30s
+keepalive is working.
+
+The 1306-entry opcode table is generated from `Opcodes.h` by `tools/codegen/opcodes.mjs`
+rather than typed by hand.
+
+**What bit:**
+
+1. **`ByteWriter` corrupted any packet that outgrew its initial buffer.**
+   `this.view.setUint32(this.grow(4), value, true)` evaluates `this.view` *before*
+   calling `grow()`, so when `grow()` reallocated and replaced the DataView the write
+   went to the old one and threw `Offset is outside the bounds of the DataView`. Nothing
+   had hit it yet because every packet built so far fit in its initial capacity; the
+   first `SMSG_CHAR_ENUM` fixture (a ~380-byte entry) found it immediately. Every writer
+   now captures the offset into a local first, and there is a test that writes 100 u32s
+   into an 8-byte writer.
+2. **Server headers must be decrypted a byte at a time.** Whether the header is 4 or 5
+   bytes is only knowable after the first byte is in the clear, and RC4 state cannot be
+   rewound — so a header that arrives split has to keep its decrypted prefix.
+   `WorldFrameReader` pulls single bytes and holds partial header state; there is a test
+   that feeds a packet one byte at a time.
+3. **Name resolution is asynchronous but chat is not.** `SMSG_MESSAGECHAT` carries only a
+   GUID for player messages, so our own first line rendered as `guid:1`. The character
+   list already has the name, so it is now seeded into the cache before entering the
+   world.
+4. Replies to `CMSG_NAME_QUERY` are matched by GUID rather than by arrival order, since
+   several can be outstanding at once.
+
+**Unhandled-opcode backlog** after 150 seconds in Elwynn Forest — the shape of the work
+still to come: `SMSG_MONSTER_MOVE` x578, `SMSG_AURA_UPDATE_ALL` x90,
+`SMSG_COMPRESSED_UPDATE_OBJECT` x73, `SMSG_DESTROY_OBJECT` x68, `SMSG_UPDATE_OBJECT` x11,
+and 25 other kinds seen once or twice.
+
+**Next:** M3 — ws↔tcp bridge (written) and the real Blizzard glue screens in the browser.

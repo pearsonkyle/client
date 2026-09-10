@@ -20,7 +20,8 @@
     "test:coverage": "jest --coverage",
     "test:watch": "jest --watch",
     "typecheck": "tsc && tsc -p tsconfig.node.json",
-    "headless": "tsx tools/headless/index.ts"
+    "headless": "tsx tools/headless/index.ts",
+    "bridge": "tsx tools/bridge/index.ts"
   },
   "keywords": [
     "world of warcraft",
