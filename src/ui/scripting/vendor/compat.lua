@@ -61,3 +61,25 @@ str.trim = strtrim
 str.split = strsplit
 str.join = strjoin
 str.replace = strreplace
+
+-------------------------------------------------------------------
+-- Lua 5.1 globals that moved or vanished in 5.3
+-- Fengari implements 5.3, but Blizzard's UI is written against 5.1, so the pieces
+-- the UI still calls have to be put back.
+unpack = unpack or tab.unpack
+getn = getn or function (t) return #t end
+setn = setn or function () end
+loadstring = loadstring or load
+
+-- string.gfind was renamed to gmatch
+str.gfind = str.gfind or str.gmatch
+gfind = str.gfind
+
+-- math.mod / math.pow were removed
+math.mod = math.mod or math.fmod
+math.pow = math.pow or function (x, y) return x ^ y end
+pow = math.pow
+
+-- table.getn / table.setn were removed
+tab.getn = tab.getn or function (t) return #t end
+tab.setn = tab.setn or function () end

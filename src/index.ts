@@ -3,6 +3,7 @@ import EventType from './ui/scripting/EventType';
 import { ModelFFX } from './ui/components';
 import * as glueScriptFunctions from './ui/scripting/globals/glue';
 import { session } from './game/GameSession';
+import { InputManager } from './ui/input/InputManager';
 import { SessionOverlay } from './ui/overlay/SessionOverlay';
 
 const params = new URLSearchParams(document.location.search);
@@ -45,7 +46,8 @@ if (params.get('overlay') !== '0') {
 
   let last = performance.now();
   const frame = (now: number) => {
-    const elapsed = now - last;
+    // OnUpdate handlers are written against seconds, which is what the game passes.
+    const elapsed = (now - last) / 1000;
     last = now;
 
     client.ui.root.onLayerUpdate(elapsed);
@@ -55,6 +57,9 @@ if (params.get('overlay') !== '0') {
   };
 
   requestAnimationFrame(frame);
+
+  // Only start routing input once the frames exist, or the first clicks hit nothing.
+  new InputManager(canvas);
 })().catch((error: Error) => {
   console.error('client failed to start:', error);
 });

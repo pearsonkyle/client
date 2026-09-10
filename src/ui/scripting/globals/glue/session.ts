@@ -60,7 +60,19 @@ session.on('realms', () => {
 
 session.on('characters', () => {
   closeStatus();
+  // CharacterSelect.lua updates its list on CHARACTER_LIST_UPDATE but never switches
+  // screens - in the real client the C side does that once the realm connection is up.
+  signal(EventType.SET_GLUE_SCREEN, '%s', 'charselect');
   signal(EventType.CHARACTER_LIST_UPDATE);
+  signal(EventType.UPDATE_SELECTED_CHARACTER, '%d', session.selectedIndex + 1);
+});
+
+session.on('state', (state) => {
+  // A dropped or cancelled session has to put the user back on the login screen, or the
+  // character list stays up showing characters we can no longer reach.
+  if (state === 'disconnected') {
+    signal(EventType.SET_GLUE_SCREEN, '%s', 'login');
+  }
 });
 
 session.on('error', (message) => {

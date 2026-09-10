@@ -1,3 +1,18 @@
+import ScriptRegion from '../abstract/ScriptRegion';
+import {
+  lua_State,
+  lua_pushboolean,
+  lua_pushnumber,
+  lua_pushstring,
+  lua_toboolean,
+  lua_tojsstring,
+  lua_tonumber,
+} from '../../scripting/lua';
+
+import EditBox from './EditBox';
+
+const editBoxFrom = (L: lua_State) => ScriptRegion.getObjectFromStack(L) as EditBox;
+
 export const SetFontObject = () => {
   return 0;
 };
@@ -102,12 +117,14 @@ export const IsNumeric = () => {
   return 0;
 };
 
-export const SetPassword = () => {
+export const SetPassword = (L: lua_State) => {
+  editBoxFrom(L).setPassword(lua_toboolean(L, 2));
   return 0;
 };
 
-export const IsPassword = () => {
-  return 0;
+export const IsPassword = (L: lua_State) => {
+  lua_pushboolean(L, editBoxFrom(L).password ? 1 : 0);
+  return 1;
 };
 
 export const SetBlinkSpeed = () => {
@@ -122,20 +139,24 @@ export const Insert = () => {
   return 0;
 };
 
-export const SetText = () => {
+export const SetText = (L: lua_State) => {
+  editBoxFrom(L).setText(lua_tojsstring(L, 2) ?? '');
   return 0;
 };
 
-export const GetText = () => {
+export const GetText = (L: lua_State) => {
+  lua_pushstring(L, editBoxFrom(L).text);
+  return 1;
+};
+
+export const SetNumber = (L: lua_State) => {
+  editBoxFrom(L).setText(String(lua_tonumber(L, 2) ?? 0));
   return 0;
 };
 
-export const SetNumber = () => {
-  return 0;
-};
-
-export const GetNumber = () => {
-  return 0;
+export const GetNumber = (L: lua_State) => {
+  lua_pushnumber(L, Number(editBoxFrom(L).text) || 0);
+  return 1;
 };
 
 export const HighlightText = () => {
@@ -158,16 +179,19 @@ export const GetTextInsets = () => {
   return 0;
 };
 
-export const SetFocus = () => {
+export const SetFocus = (L: lua_State) => {
+  editBoxFrom(L).setFocus();
   return 0;
 };
 
-export const ClearFocus = () => {
+export const ClearFocus = (L: lua_State) => {
+  editBoxFrom(L).clearFocus();
   return 0;
 };
 
-export const HasFocus = () => {
-  return 0;
+export const HasFocus = (L: lua_State) => {
+  lua_pushboolean(L, editBoxFrom(L).hasFocus ? 1 : 0);
+  return 1;
 };
 
 export const SetMaxBytes = () => {
@@ -178,12 +202,14 @@ export const GetMaxBytes = () => {
   return 0;
 };
 
-export const SetMaxLetters = () => {
+export const SetMaxLetters = (L: lua_State) => {
+  editBoxFrom(L).maxLetters = lua_tonumber(L, 2) ?? 0;
   return 0;
 };
 
-export const GetMaxLetters = () => {
-  return 0;
+export const GetMaxLetters = (L: lua_State) => {
+  lua_pushnumber(L, editBoxFrom(L).maxLetters);
+  return 1;
 };
 
 export const GetNumLetters = () => {

@@ -26,7 +26,8 @@
     "verify:browser": "node tools/verify/browser.mjs",
     "serve": "bash tools/serve.sh",
     "verify:flow": "node tools/verify/flow.mjs",
-    "verify:perf": "node tools/verify/perf.mjs"
+    "verify:perf": "node tools/verify/perf.mjs",
+    "verify:input": "node tools/verify/input.mjs"
   },
   "keywords": [
     "world of warcraft",

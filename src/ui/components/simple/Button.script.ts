@@ -12,6 +12,8 @@ import {
   lua_tojsstring,
 } from '../../scripting/lua';
 
+import { formatLua, readFormatArgs } from '../../scripting/format';
+
 import Button from './Button';
 
 export const Enable = (L: lua_State) => {
@@ -101,7 +103,9 @@ export const SetText = (L: lua_State) => {
   return 0;
 };
 
-export const SetFormattedText = () => {
+export const SetFormattedText = (L: lua_State) => {
+  const button = Button.getObjectFromStack(L);
+  button.fontString?.setText(formatLua(lua_tojsstring(L, 2) ?? '', readFormatArgs(L, 3)));
   return 0;
 };
 

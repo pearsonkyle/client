@@ -57,6 +57,9 @@ class Button extends Frame {
     this.enable(true);
     // TODO: Enable input events
     this.setFrameFlag(FrameFlag.Ox10000, true);
+
+    // A button is a button: it takes clicks without the XML having to say so.
+    this.mouseEnabled = true;
   }
 
   loadXML(node: XMLNode, status: Status) {

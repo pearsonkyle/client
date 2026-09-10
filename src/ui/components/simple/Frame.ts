@@ -258,6 +258,28 @@ class Frame extends ScriptRegion {
     }
   }
 
+  /** Whether this frame takes mouse input. Buttons and edit boxes opt in by default. */
+  mouseEnabled = false;
+  /** Whether this frame receives key events while focused. */
+  keyboardEnabled = false;
+
+  /**
+   * Whether a point in layout units falls inside this frame and it can be interacted
+   * with. Regions do not participate: only frames take input.
+   */
+  hitTest(x: number, y: number): boolean {
+    if (!this.mouseEnabled || !this.visible) {
+      return false;
+    }
+
+    const rect = this.getRect();
+    if (!rect) {
+      return false;
+    }
+
+    return x >= rect.minX && x <= rect.maxX && y >= rect.minY && y <= rect.maxY;
+  }
+
   loadXML(node: XMLNode, status: Status) {
     // TODO: Group attribute extraction together with usage
     const dontSavePosition = node.attributes.get('dontSavePosition');
@@ -298,6 +320,16 @@ class Frame extends ScriptRegion {
 
     if (toplevel) {
       this.setFrameFlag(FrameFlag.TOPLEVEL, stringToBoolean(toplevel));
+    }
+
+    const enableMouse = node.attributes.get('enableMouse');
+    if (enableMouse !== undefined) {
+      this.mouseEnabled = stringToBoolean(enableMouse);
+    }
+
+    const enableKeyboard = node.attributes.get('enableKeyboard');
+    if (enableKeyboard !== undefined) {
+      this.keyboardEnabled = stringToBoolean(enableKeyboard);
     }
 
     if (movable) {
@@ -645,8 +677,12 @@ class Frame extends ScriptRegion {
     this.runOnHideScript();
   }
 
-  onLayerUpdate(_elapsedSecs: number) {
-    // TODO: Run update script
+  onLayerUpdate(elapsedSecs: number) {
+    // Hidden frames do not tick, matching the real client - and OnUpdate handlers
+    // routinely assume they only run while visible.
+    if (this.visible) {
+      this.runScript('OnUpdate', elapsedSecs);
+    }
 
     // TODO: Run PreOnAnimUpdate hooks
 

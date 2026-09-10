@@ -7,19 +7,25 @@
     <style>
       html, body {
         margin: 0;
+        height: 100%;
       }
 
       body {
         background: black;
+        /* Centre the viewport, and letterbox it rather than letting it overflow. */
+        display: grid;
+        place-items: center;
+        overflow: hidden;
       }
 
       .container {
-        position: absolute;
-        top: 50%;
-        left: 0;
-        transform: translate(0, -50%);
-        width: 100%;
-        padding-top: calc(100% / (1024 / 768));
+        position: relative;
+        /* The UI is authored for 4:3 and the layout engine assumes it, so keep that
+           ratio - but fit inside the window instead of forcing the width and spilling
+           off the top and bottom on anything shorter. */
+        aspect-ratio: 4 / 3;
+        width: min(100vw, calc(100vh * 4 / 3));
+        height: min(100vh, calc(100vw * 3 / 4));
         background-image:
           linear-gradient(45deg, #222 25%, transparent 25%),
           linear-gradient(-45deg, #222 25%, transparent 25%),

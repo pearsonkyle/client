@@ -10,6 +10,8 @@ import {
   lua_type,
 } from '../../scripting/lua';
 
+import { formatLua, readFormatArgs } from '../../scripting/format';
+
 import FontString from './FontString';
 
 export const IsObjectType = () => {
@@ -111,9 +113,8 @@ export const SetText = (L: lua_State) => {
 
 export const SetFormattedText = (L: lua_State) => {
   const fontString = ScriptRegion.getObjectFromStack(L) as FontString;
-  // Formatting is done Lua-side by string.format before this is called in most code;
-  // where it is not, showing the raw format string beats showing nothing.
-  fontString.setText(lua_tojsstring(L, 2) ?? '');
+  const template = lua_tojsstring(L, 2) ?? '';
+  fontString.setText(formatLua(template, readFormatArgs(L, 3)));
   return 0;
 };
 

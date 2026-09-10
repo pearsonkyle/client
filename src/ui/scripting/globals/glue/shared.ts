@@ -10,25 +10,38 @@ import {
   lua_pushnil,
   lua_pushnumber,
   lua_pushstring,
+  lua_tojsstring,
 } from '../../../scripting/lua';
+import { locale } from '../../../../config';
 
 export const IsShiftKeyDown = () => {
   return 0;
 };
 
-export const GetBuildInfo = () => {
-  return 0;
+export const GetBuildInfo = (L: lua_State) => {
+  // version, build, build date, TOC version - the glue screens print these verbatim.
+  lua_pushstring(L, '3.3.5');
+  lua_pushstring(L, '12340');
+  lua_pushstring(L, 'Mar 19 2010');
+  lua_pushnumber(L, 30300);
+  return 4;
 };
 
-export const GetLocale = () => {
-  return 0;
+export const GetLocale = (L: lua_State) => {
+  lua_pushstring(L, locale);
+  return 1;
 };
 
-export const GetSavedAccountName = () => {
-  return 0;
+export const GetSavedAccountName = (L: lua_State) => {
+  lua_pushstring(L, localStorage.getItem('wowser.account') ?? '');
+  return 1;
 };
 
-export const SetSavedAccountName = () => {
+export const SetSavedAccountName = (L: lua_State) => {
+  const account = lua_tojsstring(L, 1);
+  if (account !== null && account.length > 0) {
+    localStorage.setItem('wowser.account', account);
+  }
   return 0;
 };
 
@@ -316,8 +329,10 @@ export const IsScanDLLFinished = (L: lua_State) => {
   return 1;
 };
 
-export const IsWindowsClient = () => {
-  return 0;
+export const IsWindowsClient = (L: lua_State) => {
+  // The auth handshake claims Win, since Warden rejects anything else.
+  lua_pushboolean(L, 1);
+  return 1;
 };
 
 export const IsOtherPlatformClient = () => {
