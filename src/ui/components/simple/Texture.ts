@@ -14,7 +14,6 @@ import { BlendMode } from '../../../gfx/types';
 import { Rect, Vector2, Vector3 } from '../../../math';
 import { stringToBlendMode } from '../../utils';
 import {
-  NDCtoDDCHeight,
   NDCtoDDCWidth,
   Status,
   enumSizeFor,
@@ -104,7 +103,10 @@ class Texture extends Region {
     if (this.texture && this.texture.isLoaded) {
       const { height } = this.texture;
       const ndcHeight = height / maxAspectCompensation;
-      const ddcHeight = NDCtoDDCHeight(ndcHeight);
+      // NDCtoDDCWidth, not Height: SetWidth and SetHeight both convert through the X
+      // scale, so a texture sized from its own pixels has to agree with one sized from
+      // Lua. Using the Y scale here made every unsized texture 25% too short at 4:3.
+      const ddcHeight = NDCtoDDCWidth(ndcHeight);
       return ddcHeight;
     }
 

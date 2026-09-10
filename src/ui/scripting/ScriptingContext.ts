@@ -3,6 +3,8 @@ import { enumRecordFor } from '../../utils';
 
 import {
   LUA_REGISTRYINDEX,
+  LUA_TNIL,
+  LUA_TSTRING,
   LUA_TTABLE,
   lua_Debug,
   lua_Ref,
@@ -30,6 +32,7 @@ import {
   lua_replace,
   lua_setglobal,
   lua_settop,
+  lua_tojsstring,
   lua_tolstring,
   lua_touserdata,
   lua_type,
@@ -232,6 +235,33 @@ class ScriptingContext {
     }
 
     lua_settop(L, -1 - givenArgsCount);
+  }
+
+  /**
+   * Reads a global string, for the `text="SOME_KEY"` attributes throughout the UI's XML.
+   *
+   * Those keys are almost always names of localised strings defined in GlueStrings.lua
+   * rather than literal text, so the global table is where the real text lives.
+   */
+  globalString(name: string): string | null {
+    const L = this.state;
+
+    lua_getglobal(L, name);
+    const value = lua_type(L, -1) === LUA_TSTRING ? lua_tojsstring(L, -1) : null;
+    lua_settop(L, -2);
+
+    return value;
+  }
+
+  /** Whether a global is undefined - used to audit which C API functions are missing. */
+  globalIsNil(name: string): boolean {
+    const L = this.state;
+
+    lua_getglobal(L, name);
+    const isNil = lua_type(L, -1) === LUA_TNIL;
+    lua_settop(L, -2);
+
+    return isNil;
   }
 
   getObjectByName(name: string) {

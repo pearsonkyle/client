@@ -1,4 +1,4 @@
-import { trace } from '../../../utils/logging';
+import { traceGroup, traceGroupEnd, trace } from '../../../utils/logging';
 import Frame from '../simple/Frame';
 import UIContext from '../../UIContext';
 
@@ -97,12 +97,12 @@ class FrameStrata {
   onLayerRender() {
     const { renderer } = UIContext.instance;
 
-    console.group(`strata ${this.type} (${this.name})`);
+    traceGroup(`strata ${this.type} (${this.name})`);
 
     this.prepareRenderBatches();
 
     for (const level of this.levels) {
-      console.group(`level ${level.index}`);
+      traceGroup(`level ${level.index}`);
 
       const frames = Array.from(level.frames);
 
@@ -114,10 +114,10 @@ class FrameStrata {
         renderer.draw(batch);
       }
 
-      console.groupEnd();
+      traceGroupEnd();
     }
 
-    console.groupEnd();
+    traceGroupEnd();
   }
 }
 

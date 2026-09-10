@@ -3,6 +3,7 @@ import Client from '../Client';
 
 import DrawLayerType from './DrawLayerType';
 import FactoryRegistry from './components/FactoryRegistry';
+import FontRegistry from './FontRegistry';
 import FontString from './components/simple/FontString';
 import Frame from './components/simple/Frame';
 import LayoutFrame from './components/abstract/LayoutFrame';
@@ -18,6 +19,7 @@ class UIContext {
 
   scripting: ScriptingContext;
   factories: FactoryRegistry;
+  fonts: FontRegistry;
   renderer: Renderer;
   templates: TemplateRegistry;
   root: UIRoot;
@@ -27,6 +29,7 @@ class UIContext {
 
     this.scripting = new ScriptingContext();
     this.factories = new FactoryRegistry();
+    this.fonts = new FontRegistry();
     this.renderer = new Renderer();
     this.templates = new TemplateRegistry();
 
@@ -89,16 +92,16 @@ class UIContext {
     return frame;
   }
 
-  createFontString(node: XMLNode, frame: Frame, status = new Status()) {
-    const fontString = new FontString(frame, DrawLayerType.ARTWORK, true);
+  createFontString(node: XMLNode, frame: Frame, status = new Status(), drawLayerType = DrawLayerType.ARTWORK) {
+    const fontString = new FontString(frame, drawLayerType, true);
     fontString.preLoadXML(node);
     fontString.loadXML(node, status);
     fontString.postLoadXML(node);
     return fontString;
   }
 
-  createTexture(node: XMLNode, frame: Frame, status = new Status()) {
-    const texture = new Texture(frame, DrawLayerType.ARTWORK, true);
+  createTexture(node: XMLNode, frame: Frame, status = new Status(), drawLayerType = DrawLayerType.ARTWORK) {
+    const texture = new Texture(frame, drawLayerType, true);
     texture.preLoadXML(node);
     texture.loadXML(node, status);
     texture.postLoadXML(node);
@@ -173,7 +176,9 @@ class UIContext {
           break;
         }
         case 'font': {
-          // TODO: Font support
+          // Named font objects (GameFontNormal and friends) that FontStrings inherit
+          // their face, height and colour from.
+          this.fonts.register(child);
           break;
         }
         // Other frame nodes

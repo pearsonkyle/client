@@ -1,3 +1,4 @@
+import { isDebugOverlay, traceGroup, traceGroupEnd } from '../utils/logging';
 import Device from './Device';
 import { LinkedList, LinkStrategy } from '../utils';
 
@@ -10,6 +11,8 @@ class Screen {
   canvas: HTMLCanvasElement;
   layers: LinkedList<ScreenLayer>;
   debugProgram?: WebGLProgram;
+  debugVao?: WebGLVertexArrayObject;
+  debugVertexCount = 0;
 
   constructor(canvas: HTMLCanvasElement) {
     Screen.instance = this;
@@ -35,7 +38,7 @@ class Screen {
     // TODO: Generic device interface
     const { gl } = Device.instance as WebGL2Device;
 
-    console.group('render');
+    traceGroup('render');
 
     // Ensure canvas is properly sized
     const {
@@ -105,7 +108,7 @@ class Screen {
 
     this.debugLines();
 
-    console.groupEnd();
+    traceGroupEnd();
 
     // TODO: Render again
     // requestAnimationFrame(this.render);
@@ -153,38 +156,49 @@ class Screen {
       }
     }
 
+    // The grid is a layout aid, not part of the UI. Linking the program above still
+    // happens either way, because the constructor relies on this call to do it.
+    if (!isDebugOverlay()) {
+      return;
+    }
+
     gl.useProgram(this.debugProgram);
 
-    const positionPtr = gl.getAttribLocation(this.debugProgram, 'position');
+    // The geometry never changes, so build it once. Creating a buffer and a vertex
+    // array per frame - which is what this did - leaks both, every frame.
+    if (!this.debugVao) {
+      const vertical = (x: number) => [x, -1, x, 1];
+      const horizontal = (y: number) => [-1, y, 1, y];
 
-    const vertical = (x: number) => [x, -1, x, 1];
-    const horizontal = (y: number) => [-1, y, 1, y];
+      const data = new Float32Array([
+        ...vertical(-1),
+        ...vertical(-0.5),
+        ...vertical(0),
+        ...vertical(0.5),
+        ...vertical(0.999),
 
-    const dataBuffer = gl.createBuffer();
-    const data = new Float32Array([
-      ...vertical(-1),
-      ...vertical(-0.5),
-      ...vertical(0),
-      ...vertical(0.5),
-      ...vertical(0.999),
+        ...horizontal(-1),
+        ...horizontal(-0.5),
+        ...horizontal(0),
+        ...horizontal(0.5),
+        ...horizontal(0.999),
+      ]);
+      this.debugVertexCount = data.length / 2;
 
-      ...horizontal(-1),
-      ...horizontal(-0.5),
-      ...horizontal(0),
-      ...horizontal(0.5),
-      ...horizontal(0.999),
-    ]);
+      const positionPtr = gl.getAttribLocation(this.debugProgram, 'position');
+      const dataBuffer = gl.createBuffer();
 
-    gl.bindBuffer(gl.ARRAY_BUFFER, dataBuffer);
-    gl.bufferData(gl.ARRAY_BUFFER, data, gl.STATIC_DRAW);
+      this.debugVao = gl.createVertexArray();
+      gl.bindVertexArray(this.debugVao);
+      gl.bindBuffer(gl.ARRAY_BUFFER, dataBuffer);
+      gl.bufferData(gl.ARRAY_BUFFER, data, gl.STATIC_DRAW);
+      gl.enableVertexAttribArray(positionPtr);
+      gl.vertexAttribPointer(positionPtr, 2, gl.FLOAT, false, 0, 0);
+    }
 
-    const vao = gl.createVertexArray();
-    gl.bindVertexArray(vao);
-
-    gl.enableVertexAttribArray(positionPtr);
-    gl.vertexAttribPointer(positionPtr, 2, gl.FLOAT, false, 0, 0);
-
-    gl.drawArrays(gl.LINES, 0, data.length / 2);
+    gl.bindVertexArray(this.debugVao);
+    gl.drawArrays(gl.LINES, 0, this.debugVertexCount);
+    gl.bindVertexArray(null);
   }
 }
 

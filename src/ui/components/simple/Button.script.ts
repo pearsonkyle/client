@@ -7,7 +7,9 @@ import {
   lua_State,
   lua_pushnil,
   lua_pushnumber,
+  lua_pushstring,
   lua_rawgeti,
+  lua_tojsstring,
 } from '../../scripting/lua';
 
 import Button from './Button';
@@ -76,11 +78,26 @@ export const SetFontString = () => {
   return 0;
 };
 
-export const GetFontString = () => {
-  return 0;
+export const GetFontString = (L: lua_State) => {
+  const button = Button.getObjectFromStack(L);
+  const fontString = button.fontString;
+
+  if (fontString) {
+    if (!fontString.isLuaRegistered) {
+      fontString.register();
+    }
+
+    lua_rawgeti(L, LUA_REGISTRYINDEX, fontString.luaRef!);
+  } else {
+    lua_pushnil(L);
+  }
+
+  return 1;
 };
 
-export const SetText = () => {
+export const SetText = (L: lua_State) => {
+  const button = Button.getObjectFromStack(L);
+  button.fontString?.setText(lua_tojsstring(L, 2) ?? '');
   return 0;
 };
 
@@ -88,8 +105,10 @@ export const SetFormattedText = () => {
   return 0;
 };
 
-export const GetText = () => {
-  return 0;
+export const GetText = (L: lua_State) => {
+  const button = Button.getObjectFromStack(L);
+  lua_pushstring(L, button.fontString?.text ?? '');
+  return 1;
 };
 
 export const SetNormalTexture = () => {

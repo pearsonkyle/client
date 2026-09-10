@@ -1,3 +1,18 @@
+import { lua_State, lua_pushnumber, lua_pushstring } from '../lua';
+
+// A `return 0` stub pushes no Lua values, which reads as nil at the call site. The
+// options panels do arithmetic on driver counts and string work on driver names, so
+// those have to return real values even when there is nothing to report.
+const pushCount = (L: lua_State) => {
+  lua_pushnumber(L, 1);
+  return 1;
+};
+
+const pushDriverName = (L: lua_State) => {
+  lua_pushstring(L, 'Browser');
+  return 1;
+};
+
 export const PlaySound = () => {
   return 0;
 };
@@ -14,41 +29,25 @@ export const StopMusic = () => {
   return 0;
 };
 
-export const Sound_GameSystem_GetNumInputDrivers = () => {
-  return 0;
-};
+export const Sound_GameSystem_GetNumInputDrivers = pushCount;
 
-export const Sound_GameSystem_GetInputDriverNameByIndex = () => {
-  return 0;
-};
+export const Sound_GameSystem_GetInputDriverNameByIndex = pushDriverName;
 
-export const Sound_GameSystem_GetNumOutputDrivers = () => {
-  return 0;
-};
+export const Sound_GameSystem_GetNumOutputDrivers = pushCount;
 
-export const Sound_GameSystem_GetOutputDriverNameByIndex = () => {
-  return 0;
-};
+export const Sound_GameSystem_GetOutputDriverNameByIndex = pushDriverName;
 
 export const Sound_GameSystem_RestartSoundSystem = () => {
   return 0;
 };
 
-export const Sound_ChatSystem_GetNumInputDrivers = () => {
-  return 0;
-};
+export const Sound_ChatSystem_GetNumInputDrivers = pushCount;
 
-export const Sound_ChatSystem_GetInputDriverNameByIndex = () => {
-  return 0;
-};
+export const Sound_ChatSystem_GetInputDriverNameByIndex = pushDriverName;
 
-export const Sound_ChatSystem_GetNumOutputDrivers = () => {
-  return 0;
-};
+export const Sound_ChatSystem_GetNumOutputDrivers = pushCount;
 
-export const Sound_ChatSystem_GetOutputDriverNameByIndex = () => {
-  return 0;
-};
+export const Sound_ChatSystem_GetOutputDriverNameByIndex = pushDriverName;
 
 export const VoiceChat_StartCapture = () => {
   return 0;

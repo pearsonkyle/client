@@ -18,13 +18,27 @@ class Texture {
   image: ImageData;
   error: Error | null = null;
 
-  constructor(path: string) {
-    this.path = path;
+  constructor(path: string | null = null) {
+    this.path = path ?? '';
     // A 1x1 transparent placeholder keeps the renderer's `image.width` access safe
     // before the real data lands.
     this.image = new ImageData(1, 1);
 
-    void this.load();
+    if (path !== null) {
+      void this.load();
+    }
+  }
+
+  /**
+   * Supplies pixels directly, for textures that are generated rather than loaded -
+   * rasterised text, mainly.
+   *
+   * The renderer keys its GPU upload on image identity, so replacing this triggers
+   * exactly one re-upload.
+   */
+  setImage(image: ImageData): void {
+    this.image = image;
+    this.isLoaded = true;
   }
 
   get width(): number {

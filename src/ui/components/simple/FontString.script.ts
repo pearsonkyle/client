@@ -1,3 +1,17 @@
+import ScriptRegion from '../abstract/ScriptRegion';
+import {
+  LUA_TNUMBER,
+  lua_State,
+  lua_pushboolean,
+  lua_pushnumber,
+  lua_pushstring,
+  lua_tojsstring,
+  lua_tonumber,
+  lua_type,
+} from '../../scripting/lua';
+
+import FontString from './FontString';
+
 export const IsObjectType = () => {
   return 0;
 };
@@ -50,39 +64,76 @@ export const GetFontObject = () => {
   return 0;
 };
 
-export const SetFontObject = () => {
+export const SetFontObject = (L: lua_State) => {
+  const fontString = ScriptRegion.getObjectFromStack(L) as FontString;
+  const name = lua_tojsstring(L, 2);
+  if (name !== null) {
+    fontString.applyFontObject(name);
+  }
   return 0;
 };
 
-export const GetFont = () => {
-  return 0;
+export const GetFont = (L: lua_State) => {
+  const fontString = ScriptRegion.getObjectFromStack(L) as FontString;
+  lua_pushstring(L, fontString.fontPath);
+  lua_pushnumber(L, fontString.fontHeight);
+  lua_pushstring(L, fontString.outline ? 'OUTLINE' : '');
+  return 3;
 };
 
-export const SetFont = () => {
-  return 0;
+export const SetFont = (L: lua_State) => {
+  const fontString = ScriptRegion.getObjectFromStack(L) as FontString;
+  const path = lua_tojsstring(L, 2);
+  if (path !== null) {
+    fontString.setFont(path, lua_tonumber(L, 3) ?? fontString.fontHeight, lua_tojsstring(L, 4) ?? '');
+  }
+  lua_pushboolean(L, 1);
+  return 1;
 };
 
-export const GetText = () => {
-  return 0;
+export const GetText = (L: lua_State) => {
+  const fontString = ScriptRegion.getObjectFromStack(L) as FontString;
+  lua_pushstring(L, fontString.text);
+  return 1;
 };
 
 export const GetFieldSize = () => {
   return 0;
 };
 
-export const SetText = () => {
+export const SetText = (L: lua_State) => {
+  const fontString = ScriptRegion.getObjectFromStack(L) as FontString;
+  // The game passes numbers here as often as strings.
+  const value = lua_type(L, 2) === LUA_TNUMBER ? String(lua_tonumber(L, 2)) : lua_tojsstring(L, 2);
+  fontString.setText(value ?? '');
   return 0;
 };
 
-export const SetFormattedText = () => {
+export const SetFormattedText = (L: lua_State) => {
+  const fontString = ScriptRegion.getObjectFromStack(L) as FontString;
+  // Formatting is done Lua-side by string.format before this is called in most code;
+  // where it is not, showing the raw format string beats showing nothing.
+  fontString.setText(lua_tojsstring(L, 2) ?? '');
   return 0;
 };
 
-export const GetTextColor = () => {
-  return 0;
+export const GetTextColor = (L: lua_State) => {
+  const { color } = ScriptRegion.getObjectFromStack(L) as FontString;
+  lua_pushnumber(L, color.r);
+  lua_pushnumber(L, color.g);
+  lua_pushnumber(L, color.b);
+  lua_pushnumber(L, color.a);
+  return 4;
 };
 
-export const SetTextColor = () => {
+export const SetTextColor = (L: lua_State) => {
+  const fontString = ScriptRegion.getObjectFromStack(L) as FontString;
+  fontString.setTextColor(
+    lua_tonumber(L, 2) ?? 1,
+    lua_tonumber(L, 3) ?? 1,
+    lua_tonumber(L, 4) ?? 1,
+    lua_type(L, 5) === LUA_TNUMBER ? lua_tonumber(L, 5) : 1,
+  );
   return 0;
 };
 
@@ -110,31 +161,43 @@ export const SetSpacing = () => {
   return 0;
 };
 
-export const SetTextHeight = () => {
+export const SetTextHeight = (L: lua_State) => {
+  const fontString = ScriptRegion.getObjectFromStack(L) as FontString;
+  fontString.setFont(fontString.fontPath, lua_tonumber(L, 2) ?? fontString.fontHeight, '');
   return 0;
 };
 
-export const GetStringWidth = () => {
+export const GetStringWidth = (L: lua_State) => {
+  const fontString = ScriptRegion.getObjectFromStack(L) as FontString;
+  lua_pushnumber(L, fontString.stringWidth);
+  return 1;
+};
+
+export const GetStringHeight = (L: lua_State) => {
+  const fontString = ScriptRegion.getObjectFromStack(L) as FontString;
+  lua_pushnumber(L, fontString.stringHeight);
+  return 1;
+};
+
+export const GetJustifyH = (L: lua_State) => {
+  lua_pushstring(L, (ScriptRegion.getObjectFromStack(L) as FontString).justifyH);
+  return 1;
+};
+
+export const SetJustifyH = (L: lua_State) => {
+  const fontString = ScriptRegion.getObjectFromStack(L) as FontString;
+  fontString.justifyH = (lua_tojsstring(L, 2) ?? 'CENTER').toUpperCase();
   return 0;
 };
 
-export const GetStringHeight = () => {
-  return 0;
+export const GetJustifyV = (L: lua_State) => {
+  lua_pushstring(L, (ScriptRegion.getObjectFromStack(L) as FontString).justifyV);
+  return 1;
 };
 
-export const GetJustifyH = () => {
-  return 0;
-};
-
-export const SetJustifyH = () => {
-  return 0;
-};
-
-export const GetJustifyV = () => {
-  return 0;
-};
-
-export const SetJustifyV = () => {
+export const SetJustifyV = (L: lua_State) => {
+  const fontString = ScriptRegion.getObjectFromStack(L) as FontString;
+  fontString.justifyV = (lua_tojsstring(L, 2) ?? 'MIDDLE').toUpperCase();
   return 0;
 };
 

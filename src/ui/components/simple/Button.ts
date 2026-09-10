@@ -68,35 +68,45 @@ class Button extends Frame {
       const iname = child.name.toLowerCase();
       switch (iname) {
         case 'normaltexture': {
-          const texture = ui.createTexture(child, this, status);
+          const texture = ui.createTexture(child, this, status, DrawLayerType.BACKGROUND);
           this.setStateTexture(ButtonState.NORMAL, texture);
           break;
         }
         case 'pushedtexture': {
-          const texture = ui.createTexture(child, this, status);
+          const texture = ui.createTexture(child, this, status, DrawLayerType.BACKGROUND);
           this.setStateTexture(ButtonState.PUSHED, texture);
           break;
         }
         case 'disabledtexture': {
-          const texture = ui.createTexture(child, this, status);
+          const texture = ui.createTexture(child, this, status, DrawLayerType.BACKGROUND);
           this.setStateTexture(ButtonState.DISABLED, texture);
           break;
         }
         case 'highlighttexture': {
-          const texture = ui.createTexture(child, this, status);
+          const texture = ui.createTexture(child, this, status, DrawLayerType.HIGHLIGHT);
           // TODO: Blend mode
           this.setHighlight(texture, null);
           break;
         }
         case 'buttontext':
-          ui.createFontString(child, this);
-          // TODO: Reference above font string on this button
+          // Keep the reference: SetText on a Button forwards to this font string, and
+          // without it every button label silently goes nowhere.
+          // The label goes on OVERLAY: the XML lists ButtonText before the state
+          // textures, so on a shared layer the button art would paint over its own text.
+          this.fontString = ui.createFontString(child, this, status, DrawLayerType.OVERLAY);
           break;
         // TODO: Text and font children
       }
     }
 
-    // TODO: Text, click registration and motion scripts
+    // A Button carries its label as an attribute; the value is usually a localised
+    // string key rather than the literal text.
+    const text = node.attributes.get('text');
+    if (text !== undefined && this.fontString) {
+      this.fontString.setText(UIContext.instance.scripting.globalString(text) ?? text);
+    }
+
+    // TODO: Click registration and motion scripts
   }
 
   enable(enabled: boolean) {

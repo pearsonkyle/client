@@ -25,7 +25,8 @@
     "asset-server": "tsx tools/asset-server/index.ts",
     "verify:browser": "node tools/verify/browser.mjs",
     "serve": "bash tools/serve.sh",
-    "verify:flow": "node tools/verify/flow.mjs"
+    "verify:flow": "node tools/verify/flow.mjs",
+    "verify:perf": "node tools/verify/perf.mjs"
   },
   "keywords": [
     "world of warcraft",
