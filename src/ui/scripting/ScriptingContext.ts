@@ -1,3 +1,4 @@
+import { isVerbose } from '../../utils/logging';
 import { enumRecordFor } from '../../utils';
 
 import {
@@ -126,8 +127,10 @@ class ScriptingContext {
   }
 
   execute(source: string, filename = '<inline>') {
-    console.groupCollapsed('executing', filename);
-    console.log(source.slice(0, 500));
+    if (isVerbose()) {
+      console.groupCollapsed('executing', filename);
+      console.log(source.slice(0, 500));
+    }
 
     const L = this.state;
 
@@ -147,7 +150,9 @@ class ScriptingContext {
       lua_settop(L, -2);
     }
 
-    console.groupEnd();
+    if (isVerbose()) {
+      console.groupEnd();
+    }
 
     return true;
   }
@@ -357,6 +362,15 @@ class ScriptingContext {
       return;
     }
 
+    // Reserve before pushing, and remember where the stack started so the event's
+    // arguments can be dropped again on the way out. Without both, every signalled
+    // event leaks its arguments onto the Lua stack, and after a couple of dozen events
+    // the next push fails the "stack overflow" api_check - which surfaces as a bare
+    // `Error: false` a long way from the cause.
+    const baseTop = lua_gettop(L);
+    const maxArgs = (format?.length ?? 0) + 1;
+    lua_checkstack(L, maxArgs);
+
     let argsCount = 1;
     lua_pushstring(L, event.type);
 
@@ -389,25 +403,30 @@ class ScriptingContext {
     event.signalCount++;
     event.pendingSignalCount++;
 
-    lua_checkstack(L, argsCount);
-
-    for (const node of event.listeners) {
-      const unregisterNode = event.unregisterListeners.find((inner) => inner.listener === node.listener);
-      if (unregisterNode) {
-        break;
-      }
-
-      const script = node.listener.scripts.get('OnEvent');
-      if (script?.isLuaRegistered) {
-        for (let i = 0; i < argsCount; ++i) {
-          lua_pushvalue(L, -argsCount);
+    try {
+      for (const node of event.listeners) {
+        const unregisterNode = event.unregisterListeners.find((inner) => inner.listener === node.listener);
+        if (unregisterNode) {
+          break;
         }
 
-        this.executeFunction(script.luaRef!, node.listener, argsCount, null, event);
-      }
-    }
+        const script = node.listener.scripts.get('OnEvent');
+        if (script?.isLuaRegistered) {
+          // Each listener gets its own copy of the arguments, since calling consumes them.
+          lua_checkstack(L, argsCount);
+          for (let i = 0; i < argsCount; ++i) {
+            lua_pushvalue(L, -argsCount);
+          }
 
-    event.pendingSignalCount--;
+          this.executeFunction(script.luaRef!, node.listener, argsCount, null, event);
+        }
+      }
+    } finally {
+      event.pendingSignalCount--;
+      // Drop the arguments even if a listener threw, so one bad handler does not
+      // poison every later event.
+      lua_settop(L, baseTop);
+    }
 
     // TODO: Unregister listeners
     // TODO: Register listeners

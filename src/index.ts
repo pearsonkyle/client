@@ -3,6 +3,7 @@ import EventType from './ui/scripting/EventType';
 import { ModelFFX } from './ui/components';
 import * as glueScriptFunctions from './ui/scripting/globals/glue';
 import { session } from './game/GameSession';
+import { SessionOverlay } from './ui/overlay/SessionOverlay';
 
 const params = new URLSearchParams(document.location.search);
 const api = params.get('api') || 'webgl2';
@@ -17,9 +18,14 @@ client.ui.factories.register('ModelFFX', ModelFFX);
 // Handy from the devtools console while the UI is still growing input support.
 Object.assign(window, { client, session });
 
-(async () => {
-  console.time('Client load time');
+// The frame engine cannot draw text or take input yet, so drive the session from a DOM
+// panel in the meantime. It talks to the same GameSession the Lua glue API does.
+if (params.get('overlay') !== '0') {
+  new SessionOverlay(session);
+}
 
+(async () => {
+  const started = performance.now();
   const ui = params.get('ui') ?? 'glue';
   if (ui === 'demo') {
     await client.ui.load('Wowser\\Wowser.toc');
@@ -27,7 +33,11 @@ Object.assign(window, { client, session });
     await client.ui.load('Interface\\GlueXML\\GlueXML.toc');
   }
 
-  console.timeLog('Client load time');
+  const loadMs = Math.round(performance.now() - started);
+  console.info(`UI loaded in ${loadMs}ms`);
+  // Lets the verification scripts wait for a real signal rather than a fixed timeout.
+  Object.assign(window, { wowserLoaded: true, wowserLoadMs: loadMs });
+  window.dispatchEvent(new CustomEvent('wowser:loaded', { detail: { loadMs } }));
 
   // TODO: Should be handled by GlueMgr
   client.ui.scripting.signalEvent(EventType.FRAMES_LOADED);

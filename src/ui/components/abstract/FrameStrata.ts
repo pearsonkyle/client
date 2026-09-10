@@ -1,3 +1,4 @@
+import { trace } from '../../../utils/logging';
 import Frame from '../simple/Frame';
 import UIContext from '../../UIContext';
 
@@ -37,7 +38,7 @@ class FrameStrata {
 
     const level = this.levels[frame.level]!;
 
-    console.debug(`adding ${frame.name} to strata ${frame.strataType} level ${frame.level}`);
+    trace(`adding ${frame.name} to strata ${frame.strataType} level ${frame.level}`);
 
     if (!frame.strataLink.isLinked) {
       const frames = level.pendingFrame ? level.pendingFrames : level.frames;
@@ -105,9 +106,9 @@ class FrameStrata {
 
       const frames = Array.from(level.frames);
 
-      console.debug('frame names', frames.map((f) => f.name));
-      console.debug('frames', frames);
-      console.debug('render list', Array.from(level.renderList));
+      trace('frame names', frames.map((f) => f.name));
+      trace('frames', frames);
+      trace('render list', Array.from(level.renderList));
 
       for (const batch of level.renderList) {
         renderer.draw(batch);

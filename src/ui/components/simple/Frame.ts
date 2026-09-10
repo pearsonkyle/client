@@ -1,3 +1,4 @@
+import { trace } from '../../../utils/logging';
 import Backdrop from '../Backdrop';
 import DrawLayerType from '../../DrawLayerType';
 import FrameStrataType from '../abstract/FrameStrataType';
@@ -576,7 +577,7 @@ class Frame extends ScriptRegion {
   addRegion(region: Region, drawLayerType: DrawLayerType) {
     // TODO: Layout scaling
 
-    console.debug(`adding ${region.name} as frame region to ${this.name} on layer ${drawLayerType}`);
+    trace(`adding ${region.name} as frame region to ${this.name} on layer ${drawLayerType}`);
 
     this.layers[drawLayerType].add(region);
     this.notifyDrawLayerChanged(drawLayerType);

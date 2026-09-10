@@ -1,3 +1,4 @@
+import { trace } from '../../utils/logging';
 import DrawLayerType from '../DrawLayerType';
 import Screen from '../../gfx/Screen';
 import ScreenLayer from '../../gfx/ScreenLayer';
@@ -113,7 +114,7 @@ class UIRoot extends LayoutFrame {
   onLayerUpdate(elapsedSecs: number) {
     // TODO: Clean-up destroyed frames
 
-    console.log('root pre-render');
+    trace('root pre-render');
 
     LayoutFrame.resizePending();
 

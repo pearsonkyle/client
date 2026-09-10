@@ -1,3 +1,4 @@
+import { trace } from '../../../utils/logging';
 import Client from '../../../Client';
 import Device from '../../../gfx/Device';
 import DrawLayerType from '../../DrawLayerType';
@@ -300,7 +301,7 @@ class Texture extends Region {
     this.position[2].setElements(rect.maxX, rect.maxY, this.layoutDepth);
     this.position[3].setElements(rect.maxX, rect.minY, this.layoutDepth);
 
-    console.debug('setting position for', this.name, 'to:', this.position);
+    trace('setting position for', this.name, 'to:', this.position);
   }
 
   // TODO: Create flags

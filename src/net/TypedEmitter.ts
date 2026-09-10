@@ -41,7 +41,14 @@ export class TypedEmitter<M extends EventMap> {
     }
     // Copy first: a handler may unsubscribe itself or others while we iterate.
     for (const handler of [...set]) {
-      (handler as unknown as (...a: M[K]) => void)(...args);
+      try {
+        (handler as unknown as (...a: M[K]) => void)(...args);
+      } catch (error) {
+        // A subscriber must not be able to break its siblings or the code that emitted.
+        // The UI subscribes to session events, and a fault in the frame engine taking
+        // down a live connection mid-handshake is not an acceptable failure mode.
+        console.error(`error in '${String(event)}' handler:`, error);
+      }
     }
   }
 

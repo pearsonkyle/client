@@ -1,5 +1,23 @@
 /* eslint-disable no-console, import/prefer-default-export */
 
+// Loading the full GlueXML executes ~100 Lua files and creates thousands of frames. At
+// one console line per file, per frame and per region that is six figures of output,
+// which dominates load time - badly enough to make the client feel broken. Info and
+// debug output is therefore off unless asked for; warnings and errors always show.
+//
+// Turn it on with ?verbose=1.
+const verbose =
+  typeof document !== 'undefined' && new URLSearchParams(document.location.search).get('verbose') === '1';
+
+export const isVerbose = (): boolean => verbose;
+
+/** console.debug/info, but only when verbose logging is on. */
+export const trace = (...args: Array<unknown>): void => {
+  if (verbose) {
+    console.debug(...args);
+  }
+};
+
 enum StatusType {
   INFO = 0x0,
   WARNING = 0x1,
@@ -25,7 +43,9 @@ class Status {
   }
 
   info(...args: StatusArgs) {
-    console.info(...args);
+    if (verbose) {
+      console.info(...args);
+    }
     this.add(StatusType.INFO, ...args);
   }
 
