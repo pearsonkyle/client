@@ -23,7 +23,9 @@
     "headless": "tsx tools/headless/index.ts",
     "bridge": "tsx tools/bridge/index.ts",
     "asset-server": "tsx tools/asset-server/index.ts",
-    "verify:browser": "node tools/verify/browser.mjs"
+    "verify:browser": "node tools/verify/browser.mjs",
+    "serve": "bash tools/serve.sh",
+    "verify:flow": "node tools/verify/flow.mjs"
   },
   "keywords": [
     "world of warcraft",
